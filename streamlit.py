@@ -580,14 +580,18 @@ def get_comprehensive_default_mapping():
 def load_default_futures_mapping():
     """Load default futures mapping from GitHub repository"""
     try:
-        # GitHub repository URL for futures mapping
-        url = "https://raw.githubusercontent.com/anshugovil/mstradefile/main/futures_mapping.csv"
+        # GitHub repository URL for futures mapping (with space in filename)
+        url = "https://raw.githubusercontent.com/anshugovil/mstradefile/main/futures%20mapping.csv"
         
         response = pd.read_csv(url, dtype=str).fillna("")
+        
+        # Debug info
+        st.caption(f"📊 GitHub file found with {len(response)} data rows")
         
         # Check if the file has valid data (not just headers)
         if response.empty or len(response) == 0:
             st.info("📋 GitHub file is empty. Using comprehensive default mapping (106 symbols).")
+            st.caption("To use GitHub mappings, add data rows to futures_mapping.csv in your repository")
             return get_comprehensive_default_mapping()
         
         # Process the mapping
@@ -595,19 +599,20 @@ def load_default_futures_mapping():
         
         # If processing returns None or empty, use defaults
         if not mapping:
-            st.info("📋 No valid mappings found. Using comprehensive default mapping (106 symbols).")
+            st.info("📋 No valid mappings found in GitHub file. Using comprehensive default mapping (106 symbols).")
             return get_comprehensive_default_mapping()
         
-        st.success(f"✅ Loaded {len(mapping)} mappings from GitHub successfully!")
+        st.success(f"✅ Successfully loaded {len(mapping)} mappings from GitHub!")
         return mapping
         
     except Exception as e:
-        # Don't show the full error to avoid cluttering the UI
+        # Check if it's a 404 error
         if "404" in str(e):
-            st.info("📋 GitHub repository not configured. Using comprehensive default mapping (106 symbols).")
-            st.caption("To load custom mappings from GitHub, update the URL in app.py line ~440")
+            st.error(f"❌ GitHub file not found at: {url}")
+            st.info("📋 Using comprehensive default mapping (106 symbols).")
+            st.caption("Please ensure futures_mapping.csv exists in your GitHub repository")
         else:
-            st.warning(f"⚠️ Could not load from GitHub: {str(e)[:50]}...")
+            st.warning(f"⚠️ Error accessing GitHub: {str(e)[:100]}")
             st.info("📋 Using comprehensive default mapping (106 symbols) instead.")
         return get_comprehensive_default_mapping()
 
