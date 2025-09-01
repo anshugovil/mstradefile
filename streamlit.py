@@ -92,6 +92,8 @@ if 'futures_mapping' not in st.session_state:
     st.session_state.futures_mapping = None
 if 'index_mapping' not in st.session_state:
     st.session_state.index_mapping = None
+if 'mapping_loaded' not in st.session_state:
+    st.session_state.mapping_loaded = False
 
 # ---------------- Excel Reading Functions ----------------
 @st.cache_data
@@ -446,13 +448,32 @@ def build_futures(df, fmap, trade_date):
 def load_default_futures_mapping():
     """Load default futures mapping from GitHub repository"""
     try:
-        # This URL should point to your raw GitHub file
+        # Update this URL to point to your GitHub repository
         url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/futures_mapping.csv"
         df = pd.read_csv(url, dtype=str).fillna("")
+        
+        # Check if the file is empty or has no valid mappings
+        if df.empty or len(df.columns) < 2:
+            # Return a default minimal mapping if file is empty
+            return {
+                "RELIANCE": "RELIANCE",
+                "TCS": "TCS",
+                "INFY": "INFY",
+                "NIFTY": "NIFTY",
+                "BANKNIFTY": "BANKNIFTY"
+            }
+        
         return process_futures_mapping(df)
     except Exception as e:
-        st.warning(f"Could not load default futures mapping from GitHub: {e}")
-        return None
+        # Return a default mapping if GitHub file can't be loaded
+        st.warning(f"Using default mapping. GitHub file issue: {e}")
+        return {
+            "RELIANCE": "RELIANCE",
+            "TCS": "TCS",
+            "INFY": "INFY",
+            "NIFTY": "NIFTY",
+            "BANKNIFTY": "BANKNIFTY"
+        }
 
 def process_futures_mapping(df):
     """Process futures mapping dataframe into dictionary"""
@@ -478,15 +499,29 @@ def main():
     st.title("🔄 WAFRA Dual Transformer")
     st.markdown("**Enhanced Excel Transformation Tool with Password Support**")
     
+    # Auto-load default mapping on first run
+    if not st.session_state.mapping_loaded:
+        default_mapping = load_default_futures_mapping()
+        if default_mapping:
+            st.session_state.futures_mapping = default_mapping
+            st.session_state.mapping_loaded = True
+    
     # Sidebar
     with st.sidebar:
         st.header("📁 Configuration")
         
         # Mapping file selection
         st.subheader("Futures Mapping")
+        
+        # Show current mapping status
+        if st.session_state.futures_mapping:
+            st.success(f"✅ {len(st.session_state.futures_mapping)} mappings loaded")
+        else:
+            st.warning("⚠️ No mapping loaded")
+        
         mapping_source = st.radio(
-            "Select mapping source:",
-            ["Use default from repository", "Upload custom mapping file"]
+            "Mapping options:",
+            ["Use default mapping", "Upload custom mapping file", "Reload from GitHub"]
         )
         
         if mapping_source == "Upload custom mapping file":
@@ -498,21 +533,24 @@ def main():
             if custom_mapping:
                 try:
                     df = pd.read_csv(custom_mapping, dtype=str).fillna("")
-                    st.session_state.futures_mapping = process_futures_mapping(df)
-                    st.success("✅ Custom mapping loaded successfully")
+                    mapping = process_futures_mapping(df)
+                    if mapping:
+                        st.session_state.futures_mapping = mapping
+                        st.success("✅ Custom mapping loaded successfully")
                 except Exception as e:
                     st.error(f"Error loading mapping: {e}")
-        else:
-            if st.button("Load Default Mapping"):
+        
+        elif mapping_source == "Reload from GitHub":
+            if st.button("🔄 Reload from GitHub"):
                 mapping = load_default_futures_mapping()
                 if mapping:
                     st.session_state.futures_mapping = mapping
-                    st.success("✅ Default mapping loaded")
+                    st.success("✅ Mapping reloaded from GitHub")
+                    st.rerun()
         
         # Display mapping info
         if st.session_state.futures_mapping:
-            st.info(f"📊 Loaded {len(st.session_state.futures_mapping)} mappings")
-            with st.expander("View Mappings"):
+            with st.expander("View Current Mappings"):
                 mapping_df = pd.DataFrame(
                     list(st.session_state.futures_mapping.items()),
                     columns=["Symbol", "Ticker"]
