@@ -581,12 +581,17 @@ def load_default_futures_mapping():
     """Load default futures mapping from GitHub repository"""
     try:
         # Update this URL to point to your GitHub repository
+        # Example: "https://raw.githubusercontent.com/yourusername/wafra-transformer/main/futures_mapping.csv"
         url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/futures_mapping.csv"
+        
+        # For testing without GitHub, you can comment the above and uncomment below:
+        # return get_comprehensive_default_mapping()
+        
         response = pd.read_csv(url, dtype=str).fillna("")
         
         # Check if the file has valid data (not just headers)
         if response.empty or len(response) == 0:
-            st.info("📋 GitHub file is empty. Using comprehensive default mapping.")
+            st.info("📋 GitHub file is empty. Using comprehensive default mapping (106 symbols).")
             return get_comprehensive_default_mapping()
         
         # Process the mapping
@@ -594,16 +599,20 @@ def load_default_futures_mapping():
         
         # If processing returns None or empty, use defaults
         if not mapping:
-            st.info("📋 No valid mappings found. Using comprehensive default mapping.")
+            st.info("📋 No valid mappings found. Using comprehensive default mapping (106 symbols).")
             return get_comprehensive_default_mapping()
         
-        st.success(f"✅ Loaded {len(mapping)} mappings from GitHub")
+        st.success(f"✅ Loaded {len(mapping)} mappings from GitHub successfully!")
         return mapping
         
     except Exception as e:
-        # Return comprehensive default mapping if GitHub file can't be loaded
-        st.warning(f"⚠️ Could not load from GitHub: {str(e)[:100]}")
-        st.info("📋 Using comprehensive default mapping instead.")
+        # Don't show the full error to avoid cluttering the UI
+        if "404" in str(e):
+            st.info("📋 GitHub repository not configured. Using comprehensive default mapping (106 symbols).")
+            st.caption("To load custom mappings from GitHub, update the URL in app.py line ~440")
+        else:
+            st.warning(f"⚠️ Could not load from GitHub: {str(e)[:50]}...")
+            st.info("📋 Using comprehensive default mapping (106 symbols) instead.")
         return get_comprehensive_default_mapping()
 
 def process_futures_mapping(df):
