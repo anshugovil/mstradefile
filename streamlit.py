@@ -580,12 +580,8 @@ def get_comprehensive_default_mapping():
 def load_default_futures_mapping():
     """Load default futures mapping from GitHub repository"""
     try:
-        # Update this URL to point to your GitHub repository
-        # Example: "https://raw.githubusercontent.com/yourusername/wafra-transformer/main/futures_mapping.csv"
-        url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/futures_mapping.csv"
-        
-        # For testing without GitHub, you can comment the above and uncomment below:
-        # return get_comprehensive_default_mapping()
+        # GitHub repository URL for futures mapping
+        url = "https://raw.githubusercontent.com/anshugovil/mstradefile/main/futures_mapping.csv"
         
         response = pd.read_csv(url, dtype=str).fillna("")
         
