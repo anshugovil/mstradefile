@@ -444,36 +444,167 @@ def build_futures(df, fmap, trade_date):
     return out
 
 # ---------------- Load Mapping Functions ----------------
+def get_comprehensive_default_mapping():
+    """Return comprehensive default futures mapping"""
+    return {
+        # Major Indices
+        "NIFTY": "NIFTY",
+        "BANKNIFTY": "BANKNIFTY",
+        "FINNIFTY": "FINNIFTY",
+        "MIDCPNIFTY": "MIDCPNIFTY",
+        
+        # Banking & Financial
+        "HDFC": "HDFC",
+        "HDFCBANK": "HDFCBANK",
+        "ICICIBANK": "ICICIBANK",
+        "KOTAKBANK": "KOTAKBANK",
+        "SBIN": "SBIN",
+        "AXISBANK": "AXISBANK",
+        "BAJFINANCE": "BAJFINANCE",
+        "BAJAJFINSV": "BAJAJFINSV",
+        "PNB": "PNB",
+        "BANKBARODA": "BANKBARODA",
+        "INDUSINDBK": "INDUSINDBK",
+        
+        # IT Sector
+        "TCS": "TCS",
+        "INFY": "INFY",
+        "WIPRO": "WIPRO",
+        "HCLTECH": "HCLTECH",
+        "TECHM": "TECHM",
+        "LTTS": "LTTS",
+        "COFORGE": "COFORGE",
+        "MPHASIS": "MPHASIS",
+        
+        # Energy & Oil
+        "RELIANCE": "RELIANCE",
+        "ONGC": "ONGC",
+        "IOC": "IOC",
+        "BPCL": "BPCL",
+        "GAIL": "GAIL",
+        "IGL": "IGL",
+        "PETRONET": "PETRONET",
+        
+        # Automobiles
+        "MARUTI": "MARUTI",
+        "TATAMOTORS": "TATAMOTORS",
+        "M&M": "M&M",
+        "BAJAJ-AUTO": "BAJAJ-AUTO",
+        "HEROMOTOCO": "HEROMOTOCO",
+        "EICHERMOT": "EICHERMOT",
+        "ASHOKLEY": "ASHOKLEY",
+        "TVSMOTOR": "TVSMOTOR",
+        
+        # Metals & Mining
+        "TATASTEEL": "TATASTEEL",
+        "HINDALCO": "HINDALCO",
+        "JSWSTEEL": "JSWSTEEL",
+        "VEDL": "VEDL",
+        "COALINDIA": "COALINDIA",
+        "NMDC": "NMDC",
+        "SAIL": "SAIL",
+        
+        # FMCG
+        "ITC": "ITC",
+        "HINDUNILVR": "HINDUNILVR",
+        "NESTLEIND": "NESTLEIND",
+        "BRITANNIA": "BRITANNIA",
+        "DABUR": "DABUR",
+        "MARICO": "MARICO",
+        "GODREJCP": "GODREJCP",
+        "COLPAL": "COLPAL",
+        
+        # Pharma
+        "SUNPHARMA": "SUNPHARMA",
+        "DRREDDY": "DRREDDY",
+        "CIPLA": "CIPLA",
+        "DIVISLAB": "DIVISLAB",
+        "BIOCON": "BIOCON",
+        "AUROPHARMA": "AUROPHARMA",
+        "LUPIN": "LUPIN",
+        "TORNTPHARM": "TORNTPHARM",
+        
+        # Infrastructure & Construction
+        "LT": "LT",
+        "ULTRACEMCO": "ULTRACEMCO",
+        "GRASIM": "GRASIM",
+        "SHREECEM": "SHREECEM",
+        "ACC": "ACC",
+        "AMBUJACEM": "AMBUJACEM",
+        "DALBHARAT": "DALBHARAT",
+        
+        # Telecom
+        "BHARTIARTL": "BHARTIARTL",
+        "IDEA": "IDEA",
+        
+        # Others
+        "TITAN": "TITAN",
+        "ASIANPAINT": "ASIANPAINT",
+        "PIDILITIND": "PIDILITIND",
+        "HAVELLS": "HAVELLS",
+        "VOLTAS": "VOLTAS",
+        "SIEMENS": "SIEMENS",
+        "ABB": "ABB",
+        "POWERGRID": "POWERGRID",
+        "NTPC": "NTPC",
+        "ADANIENT": "ADANIENT",
+        "ADANIPORTS": "ADANIPORTS",
+        "ADANIGREEN": "ADANIGREEN",
+        "ZOMATO": "ZOMATO",
+        "NYKAA": "NYKAA",
+        "PAYTM": "PAYTM",
+        "POLICYBZR": "POLICYBZR",
+        "ZYDUSLIFE": "ZYDUSLIFE",
+        "METROPOLIS": "METROPOLIS",
+        "LAURUSLABS": "LAURUSLABS",
+        "IRCTC": "IRCTC",
+        "INDIGO": "INDIGO",
+        "PVR": "PVR",
+        "TATAPOWER": "TATAPOWER",
+        "TATACOMM": "TATACOMM",
+        "TATAELXSI": "TATAELXSI",
+        "CANBK": "CANBK",
+        "FEDERALBNK": "FEDERALBNK",
+        "IDFCFIRSTB": "IDFCFIRSTB",
+        "RBLBANK": "RBLBANK",
+        "MUTHOOTFIN": "MUTHOOTFIN",
+        "LICHSGFIN": "LICHSGFIN",
+        "CHOLAFIN": "CHOLAFIN",
+        "SRTRANSFIN": "SRTRANSFIN",
+        "PEL": "PEL",
+        "PFC": "PFC",
+        "RECLTD": "RECLTD"
+    }
+
 @st.cache_data
 def load_default_futures_mapping():
     """Load default futures mapping from GitHub repository"""
     try:
         # Update this URL to point to your GitHub repository
         url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/futures_mapping.csv"
-        df = pd.read_csv(url, dtype=str).fillna("")
+        response = pd.read_csv(url, dtype=str).fillna("")
         
-        # Check if the file is empty or has no valid mappings
-        if df.empty or len(df.columns) < 2:
-            # Return a default minimal mapping if file is empty
-            return {
-                "RELIANCE": "RELIANCE",
-                "TCS": "TCS",
-                "INFY": "INFY",
-                "NIFTY": "NIFTY",
-                "BANKNIFTY": "BANKNIFTY"
-            }
+        # Check if the file has valid data (not just headers)
+        if response.empty or len(response) == 0:
+            st.info("📋 GitHub file is empty. Using comprehensive default mapping.")
+            return get_comprehensive_default_mapping()
         
-        return process_futures_mapping(df)
+        # Process the mapping
+        mapping = process_futures_mapping(response)
+        
+        # If processing returns None or empty, use defaults
+        if not mapping:
+            st.info("📋 No valid mappings found. Using comprehensive default mapping.")
+            return get_comprehensive_default_mapping()
+        
+        st.success(f"✅ Loaded {len(mapping)} mappings from GitHub")
+        return mapping
+        
     except Exception as e:
-        # Return a default mapping if GitHub file can't be loaded
-        st.warning(f"Using default mapping. GitHub file issue: {e}")
-        return {
-            "RELIANCE": "RELIANCE",
-            "TCS": "TCS",
-            "INFY": "INFY",
-            "NIFTY": "NIFTY",
-            "BANKNIFTY": "BANKNIFTY"
-        }
+        # Return comprehensive default mapping if GitHub file can't be loaded
+        st.warning(f"⚠️ Could not load from GitHub: {str(e)[:100]}")
+        st.info("📋 Using comprehensive default mapping instead.")
+        return get_comprehensive_default_mapping()
 
 def process_futures_mapping(df):
     """Process futures mapping dataframe into dictionary"""
@@ -483,11 +614,17 @@ def process_futures_mapping(df):
         return None
     
     sym_col, tic_col = cols[0], cols[1]
-    mapping = {
-        str(r[sym_col]).strip().upper(): str(r[tic_col]).strip().upper() or "UPDATE"
-        for _, r in df.iterrows() if str(r[sym_col]).strip()
-    }
-    return mapping
+    mapping = {}
+    
+    for _, r in df.iterrows():
+        symbol = str(r[sym_col]).strip().upper()
+        ticker = str(r[tic_col]).strip().upper()
+        
+        # Only add if symbol is not empty
+        if symbol and symbol != 'NAN':
+            mapping[symbol] = ticker if ticker and ticker != 'NAN' else "UPDATE"
+    
+    return mapping if mapping else None
 
 def load_index_options_mapping():
     """Load index options mapping with defaults"""
